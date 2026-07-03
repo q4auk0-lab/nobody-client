@@ -1,0 +1,34 @@
+name: Gradle Injectable Client Derleyici
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest 
+
+    steps:
+    - name: Kodları Çek
+      uses: actions/checkout@v4
+
+    - name: Java JDK 17 Kurulumu
+      # Projenin modern yapısı ve Kotlin bağımlılıkları için Java 17 gereklidir
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Gradle Çalıştırma İzinlerini Ayarla
+      run: chmod +x gradlew
+
+    - name: Projeyi Derle (ShadowJar / Build)
+      # Injectable client'lar tüm kütüphaneleri tek bir yapıda toplamak zorundadır.
+      # Bu yüzden standart 'build' yerine genellikle 'shadowJar' kullanılır.
+      run: ./gradlew shadowJar || ./gradlew build --no-daemon
+
+    - name: Enjekte Edilebilir Dosyayı Kaydet
+      uses: actions/upload-artifact@v4
+      with:
+        name: Nobody-Injectable-Output
+        path: |
+          build/libs/*.jar
